@@ -58,8 +58,8 @@ func encrypt(plaintext string, key []rune) string {
 func main() {
 	// var alphabet = []rune{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'}
 	//                        0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21
-	// var key = []rune{'A', 'B', 'A', 'B', 'A', 'B', 'B'}
-	var key = []rune{'A', 'B', 'A', 'B', 'A', 'B', 'A', 'A'}
+	var key = []rune{'A', 'B', 'A', 'B', 'A', 'B', 'B'}
+	// var key = []rune{'A', 'B', 'A', 'B', 'A', 'B', 'A', 'A'} caz pe care nu merge
 	plaintext := readPlaintext()
 	newPlaintext := processPlaintext(plaintext)
 	//fmt.Println(newPlaintext)
