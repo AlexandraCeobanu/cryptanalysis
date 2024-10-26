@@ -15,7 +15,7 @@ var initialPInv = [][]int{
 	{38, 6, 46, 14, 54, 22, 62, 30},
 	{37, 5, 45, 13, 53, 21, 61, 29},
 	{36, 4, 44, 12, 52, 20, 60, 28},
-	{35, 3, 43, 11, 51, 19, 59, 17},
+	{35, 3, 43, 11, 51, 19, 59, 27},
 	{34, 2, 42, 10, 50, 18, 58, 26},
 	{33, 1, 41, 9, 49, 17, 57, 25},
 }
@@ -220,22 +220,24 @@ func E(A string) string {
 }
 func computeS_i(B_i string, i int) int {
 
-	binaryRow := string(B_i[0] + B_i[5])
+	binaryRow := string(B_i[0]) + string(B_i[5])
 	row, _ := strconv.ParseInt(binaryRow, 2, 64)
 
-	binaryCol := string(B_i[1] + B_i[2] + B_i[3] + B_i[4])
+	binaryCol := string(B_i[1]) + string(B_i[2]) + string(B_i[3]) + string(B_i[4])
 	col, _ := strconv.ParseInt(binaryCol, 2, 64)
 
+	// fmt.Println("Row  ", row)
+	// fmt.Println("Col ", col)
 	value := SBoxes[i][row][col]
-
+	// fmt.Println("Value ", value)
 	return value
 
 }
 func f(R string, key string) string {
 	expendedR := E(R)
-	// fmt.Println("Expended R: ")
-	// fmt.Println(expendedR)
-	// fmt.Println("---------------------------")
+	fmt.Println("Expended R: ")
+	fmt.Println(expendedR)
+	fmt.Println("---------------------------------------")
 
 	var B strings.Builder
 	var C strings.Builder
@@ -248,6 +250,10 @@ func f(R string, key string) string {
 	}
 
 	stringB := B.String()
+	fmt.Println("XOR R si K: ")
+	fmt.Println(stringB)
+	fmt.Println("---------------------------------------")
+
 	for i := 0; i < len(stringB); i = i + 6 {
 
 		value := computeS_i(stringB[i:i+6], i/6)
@@ -255,7 +261,16 @@ func f(R string, key string) string {
 		C.WriteString(C_i)
 	}
 
+	fmt.Println("S_box: ")
+	fmt.Println(C.String())
+	fmt.Println("---------------------------------------")
+
 	permutedC := permutationP(C.String())
+
+	fmt.Println("f: ")
+	fmt.Println(permutedC)
+	fmt.Println("---------------------------------------")
+
 	return permutedC
 
 }
@@ -299,6 +314,9 @@ func LS(A string, i int) string {
 	if i == 1 || i == 2 || i == 9 || i == 16 {
 		newA.WriteString(A[1:])
 		newA.WriteString(A[0:1])
+	} else {
+		newA.WriteString(A[2:])
+		newA.WriteString(A[0:2])
 	}
 	return newA.String()
 
@@ -330,17 +348,23 @@ func encrypt(L0 string, R0 string, key string) string {
 
 	for round := 1; round <= 16; round++ {
 
-		currentC := LS(previousC, 1)
-		currentD := LS(previousD, 1)
+		fmt.Println("Round ", round)
+		fmt.Println("-------------------------------------------------------------------------")
+		currentC := LS(previousC, round)
+		currentD := LS(previousD, round)
 		K_i := permutationPC2(currentC, currentD)
-		// fmt.Println("Key round 1:  ")
-		// fmt.Println(K_i)
-		// fmt.Println("--------------------------")
+		fmt.Println("Key :  ")
+		fmt.Println(K_i)
+		fmt.Println("----------------------------------")
 		previousC = currentC
 		previousD = currentD
 
 		currentL = previousR
 		currentR = XOR(f(previousR, K_i), previousL)
+
+		fmt.Println("L = R: ")
+		fmt.Println(currentR)
+		fmt.Println("---------------------------------------")
 
 		previousL = currentL
 		previousR = currentR
@@ -349,10 +373,19 @@ func encrypt(L0 string, R0 string, key string) string {
 	fmt.Println("R16  ", currentR)
 	fmt.Println("L16  ", currentL)
 
-	inv := currentR + currentL
+	inv := string(currentR) + string(currentL)
 	invPermuted := initialPermutationInv(inv)
 
-	number, _ := strconv.ParseInt(invPermuted, 2, 64)
+	fmt.Println("Binary : ", invPermuted)
+
+	// var cryptotext strings.Builder
+	// for i := 0; i < len(invPermuted); i += 4 {
+	// 	chunk := invPermuted[i : i+4]
+	// 	num, _ := strconv.ParseUint(chunk, 2, 4)
+	// 	cryptotext.WriteString(fmt.Sprintf("%X", num))
+	// }
+
+	number, _ := strconv.ParseUint(invPermuted, 2, 64)
 	cryptotext := fmt.Sprintf("%X", number)
 	return cryptotext
 
