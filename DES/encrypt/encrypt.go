@@ -8,6 +8,17 @@ import (
 	"strings"
 )
 
+var Etable = [][]int{
+	{32, 1, 2, 3, 4, 5},
+	{4, 5, 6, 7, 8, 9},
+	{8, 9, 10, 11, 12, 13},
+	{12, 13, 14, 15, 16, 17},
+	{16, 17, 18, 19, 20, 21},
+	{20, 21, 22, 23, 24, 25},
+	{24, 25, 26, 27, 28, 29},
+	{28, 29, 30, 31, 32, 1},
+}
+
 func readPlaintext() string {
 	plaintext, error := os.ReadFile("DES/encrypt/plaintext.txt")
 	if error != nil {
@@ -69,10 +80,6 @@ func initialPermutation(bitString string, p [][]int) string {
 
 // }
 
-// func encrypt(plaintext string, key []string) string {
-
-// }
-
 func toBits(arrayOfBytes []byte) string {
 
 	var stringOfBits strings.Builder
@@ -82,7 +89,34 @@ func toBits(arrayOfBytes []byte) string {
 	}
 	return stringOfBits.String()
 }
+func E(A string) string {
+	var extendedA strings.Builder
+	for i, row := range Etable {
+		for j, _ := range row {
 
+			extendedA.WriteRune(rune(A[Etable[i][j]-1]))
+		}
+	}
+	return extendedA.String()
+}
+func f(R string) {
+	expendedR := E(R)
+	fmt.Println("Expended R: ")
+	fmt.Println(expendedR)
+}
+func encrypt(L0 string, R0 string) {
+
+	f(R0)
+	// previousL := L0
+	// previousR := R0
+	// for round := 1; round <= 16; round++ {
+
+	// 	currentL := previousR
+	// 	currentR := f(previousR)
+
+	// }
+
+}
 func main() {
 	// var key = []string{"1", "3", "3", "4", "5", "7", "7", "9", "9", "B", "B", "C", "D", "F", "F", "1"}
 	initialP := [][]int{
@@ -110,8 +144,9 @@ func main() {
 	R0 := bitsAfterP[32:64]
 
 	fmt.Println("L0 = ", L0)
-	fmt.Println("L1 = ", R0)
+	fmt.Println("R0 = ", R0)
 
+	encrypt(L0, R0)
 	// blocks := createBlocks(stringOfBits)
 	// for _, block := range blocks {
 	// 	fmt.Println(block)
