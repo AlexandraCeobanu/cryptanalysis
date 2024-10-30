@@ -64,9 +64,6 @@ func findFrequencies(alphabet []string, cryptotext string) {
 		return sortedFrequencies[i].Value > sortedFrequencies[j].Value
 	})
 
-	// for _, letter := range sortedFrequencies {
-	// 	fmt.Printf("%s: %f\n", letter.Key, letter.Value)
-	// }
 
 }
 func addPossibleValues1() {
@@ -84,39 +81,11 @@ func addPossibleValues1() {
 	possibleSubs = append(possibleSubs, values{string(letter), make(map[string]float32)})
 	possibleSubs[len(possibleSubs)-1].substitutionValues[topFreq[len(topFreq)-1]] = float32(freq)
 
-	// for i, letter := range sortedFrequencies {
-	// 	possibleSubs = append(possibleSubs, values{string(letter.Key), make(map[string]float32)})
-	// 	if i < 4 || i == len(topFreq)-1 {
-	// 		possibleSubs[len(possibleSubs)-1].substitutionValues[topFreq[i]] = float32(letter.Value)
-	// 	}
-	// }
-
-	// for i, letter := range sortedFrequencies {
-	// 	possibleSubs = append(possibleSubs, values{string(letter.Key), make(map[string]float32)})
-	// 	possibleSubs[len(possibleSubs)-1].substitutionValues[topFreq[i]] = float32(letter.Value)
-	// }
-
 }
 func addPossibleValues2() {
 
 	//adauga a doua valoare posibila pentru fiecare litera dupa calcul frecventelor digramelor
 	var topBigrams = []string{"TH", "HE", "IN", "ER", "AN", "ER", "ND", "ON", "EN", "AT", "OU", "ED", "HA", "TO", "OR", "IT", "IS", "HI", "ES", "NG"}
-	// for i := 0; i < len(topBigrams); i++ {
-	// 	bigram := sortedBigrams[i]
-	// 	for j, letter := range bigram.bigram {
-	// 		exists := false
-	// 		for _, element := range possibleSubs {
-	// 			if element.letter == string(letter) {
-	// 				exists = true
-	// 			}
-	// 		}
-	// 		if !exists {
-	// 			possibleSubs = append(possibleSubs, values{string(letter), make(map[string]float32)})
-
-	// 			possibleSubs[len(possibleSubs)-1].substitutionValues[string(topBigrams[i][j])] = float32(bigram.freq)
-	// 		}
-	// 	}
-	// }
 	for i, bigram := range sortedBigrams {
 		if i < len(topBigrams) {
 			for indx, x := range possibleSubs {
@@ -158,32 +127,7 @@ func addPossibleValues3() {
 			}
 		}
 	}
-	// for i, trigram := range sortedTrigrams {
-	// 	if i < len(topTrigrams) {
-	// 		for indx, x := range possibleSubs {
-	// 			if x.letter == string(trigram.trigram[0]) {
-	// 				currentFreq := possibleSubs[indx].substitutionValues[string(topTrigrams[i][0])]
-	// 				if currentFreq < float32(trigram.freq) {
-	// 					possibleSubs[indx].substitutionValues[string(topTrigrams[i][0])] = float32(trigram.freq)
-	// 				}
-	// 			}
-	// 			if x.letter == string(trigram.trigram[1]) {
-	// 				currentFreq := possibleSubs[indx].substitutionValues[string(topTrigrams[i][1])]
-	// 				if currentFreq < float32(trigram.freq) {
-	// 					possibleSubs[indx].substitutionValues[string(topTrigrams[i][1])] = float32(trigram.freq)
-	// 				}
-	// 			}
-	// 			if x.letter == string(trigram.trigram[2]) {
-	// 				currentFreq := possibleSubs[indx].substitutionValues[string(topTrigrams[i][2])]
-	// 				if currentFreq < float32(trigram.freq) {
-	// 					possibleSubs[indx].substitutionValues[string(topTrigrams[i][2])] = float32(trigram.freq)
-	// 				}
-	// 			}
-	// 		}
-	// 	} else {
-	// 		break
-	// 	}
-	// }
+
 }
 
 func containsBigram(stringsArray []bigrams, element string) bool {
@@ -217,9 +161,6 @@ func bigramsFreq(cryptotext string) {
 		return sortedBigrams[i].freq > sortedBigrams[j].freq
 	})
 
-	// for _, substitution := range sortedBigrams {
-	// 	fmt.Printf("%s: %f\n", substitution.bigram, substitution.freq)
-	// }
 
 }
 func trigramsFreq(cryptotext string) {
@@ -235,9 +176,7 @@ func trigramsFreq(cryptotext string) {
 	sort.Slice(sortedTrigrams, func(i, j int) bool {
 		return sortedTrigrams[i].freq > sortedTrigrams[j].freq
 	})
-	// for _, substitution := range sortedTrigrams {
-	// 	fmt.Printf("%s: %f\n", substitution.trigram, substitution.freq)
-	// }
+	
 }
 func findKey() {
 	key := make(map[string]string)
@@ -255,10 +194,6 @@ func findKey() {
 		key[string(element.letter)] = maxLetter
 
 	}
-
-	// for index, letter := range topFreq {
-	// 	key[string(letter)] = sortedFrequencies[index].Key
-	// }
 
 	for key, value := range key {
 		sortedKey = append(sortedKey, substitution{key, value})
@@ -289,11 +224,5 @@ func main() {
 	addPossibleValues2()
 
 	findKey()
-	// for _, element := range possibleSubs {
-	// 	fmt.Printf("%s\n", element.letter)
-	// 	for associatedLetter, probability := range element.substitutionValues {
-	// 		fmt.Printf("%s : %f\n", associatedLetter, probability)
-	// 	}
-	// }
 
 }
