@@ -40,57 +40,53 @@ func modularInverse(x, p *big.Int) *big.Int {
 	}
 	return inv
 }
-func shank(g, p, x *big.Int) int {
+func shank(alpha, p, beta *big.Int) int {
 
 	one := big.NewInt(1)
-	m := new(big.Int).Sqrt(new(big.Int).Sub(p, one))
-	table := make([]*big.Int, m.Int64())
+	n := new(big.Int).Sub(p, one)
+	m := new(big.Int).Sqrt(n)
+	table := make(map[int]*big.Int)
 
-	g_inv := modularInverse(g, p)
-	for i := int64(0); i < m.Int64(); i++ {
+	for j := 0; j < int(m.Int64()); j++ {
 
-		im := new(big.Int).Mul(big.NewInt(i), m)
-
-		g_la_im := new(big.Int).Exp(g_inv, im, p)
-
-		x_g_la_im := new(big.Int).Mul(x, g_la_im)
-		x_g_la_im.Mod(x_g_la_im, p)
-
-		fmt.Println(x_g_la_im)
-		table[int(i)] = x_g_la_im
+		alpha_la_j := new(big.Int).Exp(alpha, big.NewInt(int64(j)), p)
+		table[j] = alpha_la_j
 	}
 
-	for j := int64(0); j < m.Int64(); j++ {
+	alpha_inv := modularInverse(alpha, p)
+	alpha_la_m := new(big.Int).Exp(alpha_inv, m, p)
+	gamma := beta
 
-		g_la_j := new(big.Int).Exp(g, big.NewInt(j), p)
+	for i := 0; i < int(m.Int64()); i++ {
 
-		for i := int64(0); i < m.Int64(); i++ {
-			if (g_la_j.Cmp(table[i])) == 0 {
+		for j := 0; j < int(m.Int64()); j++ {
 
-				fmt.Println("i= ", i)
-				fmt.Println("j = ", j)
-				a := new(big.Int).Add(new(big.Int).Mul(big.NewInt(int64(i)), m), big.NewInt(j))
-				return int(a.Int64())
+			if (gamma.Cmp(table[j])) == 0 {
+
+				x := new(big.Int).Add(new(big.Int).Mul(big.NewInt(int64(i)), m), big.NewInt(int64(j)))
+				return int(x.Int64())
 			}
-
 		}
 
-	}
+		gamma.Mul(gamma, alpha_la_m)
 
+	}
 	return -1
 }
+
 func primeFactorization(n *big.Int) []map[int]int {
 
 	factorization := make(map[int]int)
 	index_factor := 0
 	factor := big.NewInt(int64(prime_factors[index_factor]))
 	for {
-		if n.Cmp(big.NewInt(1)) == 0 {
+		if n.Cmp(big.NewInt(1)) == 0 || index_factor >= len(prime_factors) {
 			break
 		}
 		power := 0
 		for {
-			if n.Mod(n, factor) != big.NewInt(0) {
+
+			if new(big.Int).Mod(n, factor).Cmp(big.NewInt(0)) != 0 {
 				break
 			}
 
@@ -98,11 +94,15 @@ func primeFactorization(n *big.Int) []map[int]int {
 			n.Div(n, factor)
 		}
 		if power != 0 {
+
 			factorization[int(factor.Int64())] = power
 		}
 
 		index_factor = index_factor + 1
-		factor = big.NewInt(int64(prime_factors[index_factor]))
+		if index_factor < len(prime_factors) {
+			factor = big.NewInt(int64(prime_factors[index_factor]))
+		}
+
 	}
 
 	list_factorization := make([]map[int]int, len(factorization))
@@ -115,7 +115,7 @@ func primeFactorization(n *big.Int) []map[int]int {
 		list_factorization[i][key] = value
 		i = i + 1
 	}
-	// fmt.Println(list_factorization)
+
 	return list_factorization
 }
 
@@ -138,6 +138,8 @@ func gauss(xi []*big.Int, primeFactors []map[int]int) *big.Int {
 		m.Mul(m, pi_ei)
 	}
 
+	fmt.Println("m = ", m)
+
 	x := big.NewInt(0)
 	for i := 0; i < r; i++ {
 
@@ -149,21 +151,21 @@ func gauss(xi []*big.Int, primeFactors []map[int]int) *big.Int {
 		c_i_inv := modularInverse(c_i, m_i)
 
 		x_i := new(big.Int).Mul(c_i_inv, xi[i])
-		m_x_i := new(big.Int).Mul(x_i, m_i)
+		m_x_i := new(big.Int).Mul(x_i, c_i)
 
 		x.Add(x, m_x_i)
 
 	}
-	return x
-
+	return x.Mod(x, m)
 }
 func silverPohligHellman(alpha *big.Int, n *big.Int, beta *big.Int, p *big.Int) *big.Int {
 
 	// primeFactorization(10)
-	factorization := primeFactorization(n)
+	n_cpy := big.NewInt(n.Int64())
+	factorization := primeFactorization(n_cpy)
 
 	r := len(factorization)
-	xs := make([]*big.Int, r)
+	var xs []*big.Int
 	for i := 0; i < r; i++ {
 
 		q, e := returnKeyValue(factorization, i)
@@ -174,18 +176,24 @@ func silverPohligHellman(alpha *big.Int, n *big.Int, beta *big.Int, p *big.Int) 
 		n_div_q.Div(n, big.NewInt(int64(q)))
 
 		alpha_b := new(big.Int).Exp(alpha, n_div_q, p)
-		ls := make([]*big.Int, e)
+		var ls []*big.Int
 
 		for j := 0; j < e; j++ {
 			j_m1 := new(big.Int).Sub(big.NewInt(int64(j)), big.NewInt(1))
 
-			q_la_j := new(big.Int).Exp(big.NewInt(int64(q)), j_m1, p)
+			q_la_j := new(big.Int)
+			if j_m1.Cmp(big.NewInt(-1)) == 0 {
+				q_la_j = modularInverse(big.NewInt(int64(q)), p)
+			} else {
+				q_la_j = new(big.Int).Exp(big.NewInt(int64(q)), j_m1, p)
+			}
+
 			l_j_q_j := new(big.Int)
 			l_j_q_j.Mul(ant_l, q_la_j)
 
 			alpha2 := new(big.Int).Exp(alpha, l_j_q_j, p)
 
-			gamma := new(big.Int).Mul(gamma, alpha2)
+			gamma = new(big.Int).Mul(gamma, alpha2)
 			gamma.Mod(gamma, p)
 
 			j_p1 := new(big.Int).Add(big.NewInt(int64(j)), big.NewInt(1))
@@ -196,31 +204,49 @@ func silverPohligHellman(alpha *big.Int, n *big.Int, beta *big.Int, p *big.Int) 
 			beta_gamma_inv := new(big.Int).Mul(beta, gamma_inv)
 			beta_b := new(big.Int).Exp(beta_gamma_inv, n_q_la_j_p1, p)
 
-			l_j := big.NewInt(int64(shank(alpha_b, n, beta_b)))
+			l_j := big.NewInt(int64(shank(alpha_b, p, beta_b)))
+
 			ls = append(ls, l_j)
+
+			ant_l = big.NewInt(l_j.Int64())
 
 		}
 
 		x_i := new(big.Int)
-		for index, element := range ls {
 
+		for index, element := range ls {
 			if index == 0 {
 				x_i = element
+
 			} else {
 
-				q_e := new(big.Int).Exp(big.NewInt(int64(q)), big.NewInt(int64(index+1)), p)
+				q_e := new(big.Int).Exp(big.NewInt(int64(q)), big.NewInt(int64(index)), p)
+
 				j_q := new(big.Int).Mul(element, q_e)
+
 				x_i.Add(x_i, j_q)
 			}
 
-			xs = append(xs, x_i)
 		}
+		xs = append(xs, x_i)
 
 	}
-
+	fmt.Println("xs: ", xs)
 	x := gauss(xs, factorization)
 	return x
 
+}
+
+func DiffieHellman() {
+	p := generateP()
+	n := new(big.Int).Sub(p, big.NewInt(1))
+	g := big.NewInt(2)
+	a, _ := rand.Int(rand.Reader, new(big.Int).Sub(p, big.NewInt(1)))
+	fmt.Println("before Pohlig Hellman a= ", a)
+	g_la_a := new(big.Int).Exp(g, a, p)
+	findA := silverPohligHellman(g, n, g_la_a, p)
+
+	fmt.Println("after Pohlig Hellman a= ", findA)
 }
 
 func main() {
@@ -235,12 +261,26 @@ func main() {
 	// p_prime := generateP()
 	// fmt.Println("Numarul prim generat p: ", p_prime)
 
-	alpha := big.NewInt(3)
-	n := big.NewInt(101)
-	beta := big.NewInt(37)
-	p := big.NewInt(10)
+	alpha := big.NewInt(71)
+	n := big.NewInt(250)
+	beta := big.NewInt(210)
+	p := big.NewInt(251)
 
 	x := silverPohligHellman(alpha, n, beta, p)
 
 	fmt.Println("x = ", x)
+	DiffieHellman()
+	// xi := []*big.Int{
+	// 	big.NewInt(2),
+	// 	big.NewInt(3),
+	// 	big.NewInt(1),
+	// }
+	// primeFactors := []map[int]int{
+	// 	{3: 1}, // p1 = 3^1
+	// 	{5: 1}, // p2 = 5^1
+	// 	{7: 1}, // p3 = 7^1
+	// }
+
+	// result := gauss(xi, primeFactors)
+	// fmt.Println("Rezultat:", result)
 }
