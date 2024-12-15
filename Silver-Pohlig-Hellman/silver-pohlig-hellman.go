@@ -8,6 +8,8 @@ import (
 
 var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541}
 
+// var prime_factors = []int{2, 3, 5, 7}
+
 func isPrime(p *big.Int) bool {
 	return p.ProbablyPrime(20)
 }
@@ -84,6 +86,7 @@ func primeFactorization(n *big.Int) []map[int]int {
 			break
 		}
 		power := 0
+
 		for {
 
 			if new(big.Int).Mod(n, factor).Cmp(big.NewInt(0)) != 0 {
@@ -161,7 +164,9 @@ func gauss(xi []*big.Int, primeFactors []map[int]int) *big.Int {
 func silverPohligHellman(alpha *big.Int, n *big.Int, beta *big.Int, p *big.Int) *big.Int {
 
 	// primeFactorization(10)
+
 	n_cpy := big.NewInt(n.Int64())
+
 	factorization := primeFactorization(n_cpy)
 
 	r := len(factorization)
@@ -241,6 +246,7 @@ func DiffieHellman() {
 	p := generateP()
 	n := new(big.Int).Sub(p, big.NewInt(1))
 	g := big.NewInt(2)
+
 	a, _ := rand.Int(rand.Reader, new(big.Int).Sub(p, big.NewInt(1)))
 	fmt.Println("before Pohlig Hellman a= ", a)
 	g_la_a := new(big.Int).Exp(g, a, p)
