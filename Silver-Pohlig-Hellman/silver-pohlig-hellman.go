@@ -6,7 +6,10 @@ import (
 	"math/big"
 )
 
-var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541}
+// var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541}
+// var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97}
+
+var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}
 
 // var prime_factors = []int{2, 3, 5, 7}
 
@@ -21,15 +24,21 @@ func generateP() *big.Int {
 		initialP := big.NewInt(int64(prime_factors[index.Int64()]))
 		for {
 
-			if initialP.BitLen() >= 1024 {
+			if initialP.BitLen() >= 512 {
 				break
 			}
 			index, _ := rand.Int(rand.Reader, big.NewInt(int64(len(prime_factors))))
 			factor := big.NewInt(int64(prime_factors[index.Int64()]))
-			initialP.Mul(initialP, factor)
+			if new(big.Int).Mul(initialP, factor).BitLen() <= 512 {
+
+				initialP.Mul(initialP, factor)
+			}
+
 		}
 		p := new(big.Int).Add(initialP, big.NewInt(1))
+
 		if isPrime(p) {
+			fmt.Println("length: ", p.BitLen())
 			return p
 		}
 	}
@@ -241,12 +250,40 @@ func silverPohligHellman(alpha *big.Int, n *big.Int, beta *big.Int, p *big.Int) 
 	return x
 
 }
+func isGenerator(g, p *big.Int, factors []map[int]int) bool {
+	pMinusOne := new(big.Int).Sub(p, big.NewInt(1))
 
+	for index, _ := range factors {
+
+		factor, _ := returnKeyValue(factors, index)
+
+		exp := new(big.Int).Div(pMinusOne, big.NewInt(int64(factor)))
+		val := new(big.Int).Exp(g, exp, p)
+		if val.Cmp(big.NewInt(1)) == 0 {
+			return false
+		}
+	}
+
+	return true
+}
+
+func findGenerator(p *big.Int) *big.Int {
+	pMinusOne := new(big.Int).Sub(p, big.NewInt(1))
+	factors := primeFactorization(new(big.Int).Set(pMinusOne))
+
+	for g := big.NewInt(2); g.Cmp(p) < 0; g.Add(g, big.NewInt(1)) {
+		if isGenerator(g, p, factors) {
+			return g
+		}
+	}
+
+	return nil
+}
 func DiffieHellman() {
 	p := generateP()
 	n := new(big.Int).Sub(p, big.NewInt(1))
-	g := big.NewInt(2)
-
+	// g := big.NewInt(2)
+	g := findGenerator(p)
 	a, _ := rand.Int(rand.Reader, new(big.Int).Sub(p, big.NewInt(1)))
 	fmt.Println("before Pohlig Hellman a= ", a)
 	g_la_a := new(big.Int).Exp(g, a, p)
