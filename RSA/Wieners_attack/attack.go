@@ -1,9 +1,48 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 	"math/big"
 )
+
+// var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541}
+// var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97}
+
+var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}
+
+// var prime_factors = []int{2, 3, 5, 7}
+
+func isPrime(p *big.Int) bool {
+	return p.ProbablyPrime(20)
+}
+func generateP() *big.Int {
+
+	for {
+
+		index, _ := rand.Int(rand.Reader, big.NewInt(int64(len(prime_factors))))
+		initialP := big.NewInt(int64(prime_factors[index.Int64()]))
+		for {
+
+			if initialP.BitLen() >= 10 {
+				break
+			}
+			index, _ := rand.Int(rand.Reader, big.NewInt(int64(len(prime_factors))))
+			factor := big.NewInt(int64(prime_factors[index.Int64()]))
+			if new(big.Int).Mul(initialP, factor).BitLen() <= 512 {
+
+				initialP.Mul(initialP, factor)
+			}
+
+		}
+		p := new(big.Int).Add(initialP, big.NewInt(1))
+
+		if isPrime(p) {
+
+			return p
+		}
+	}
+}
 
 func check(e, l, d *big.Int) bool {
 	two := big.NewInt(2)
@@ -31,15 +70,13 @@ func resolveSystem(e, n, l, d *big.Int) (*big.Int, *big.Int) {
 	ed_1 := new(big.Int).Sub(ed, one)
 	ed_1_l := new(big.Int).Div(ed_1, l)
 
-	fmt.Println("prod ", n)
-	fmt.Println("ed-1/l ", ed_1_l)
 	sum := new(big.Int).Sub(n, ed_1_l)
 	sum = sum.Add(sum, one)
-	fmt.Println("suma ", sum)
+
 	delta := new(big.Int).Mul(sum, sum)
 	prod4 := new(big.Int).Mul(n, four)
 	delta = delta.Sub(delta, prod4)
-	fmt.Println("delta ", delta)
+
 	if delta.Cmp(zero) == -1 {
 		fmt.Println("Nu exista solutii pentru sistem")
 		return nil, nil
@@ -90,11 +127,6 @@ func findDPQ(e, n *big.Int) (*big.Int, *big.Int, *big.Int) {
 			betha_i = new(big.Int).Add(betha_i, betha_i_2)
 		}
 
-		fmt.Println("q ", q_curent)
-		fmt.Println("r ", r_curent)
-		fmt.Println("alpha ", alpha_i)
-		fmt.Println("betha ", betha_i)
-
 		l := big.NewInt(alpha_i.Int64())
 		d := big.NewInt(betha_i.Int64())
 		result := check(e, l, d)
@@ -115,6 +147,27 @@ func findDPQ(e, n *big.Int) (*big.Int, *big.Int, *big.Int) {
 	}
 	return nil, nil, nil
 }
+func gcd(a, b *big.Int) *big.Int {
+	zero := big.NewInt(0)
+	for b.Cmp(zero) != 0 {
+		a, b = b, new(big.Int).Mod(a, b)
+	}
+	return a
+}
+func selectE(euler *big.Int) *big.Int {
+	one := big.NewInt(1)
+	for {
+		e, err := rand.Int(rand.Reader, euler)
+		if err != nil {
+			fmt.Println("Eroare:", err)
+			return nil
+		}
+
+		if e.Cmp(one) > 0 && gcd(euler, e).Cmp(one) == 0 {
+			return e
+		}
+	}
+}
 func main() {
 
 	e := big.NewInt(3467)
@@ -126,4 +179,20 @@ func main() {
 	} else {
 		fmt.Printf("d = %d , p = %d, q = %d ", d, p, q)
 	}
+
+	// p := generateP()
+	// q := generateP()
+	// n := big.NewInt(new(big.Int).Mul(p, q).Int64())
+	// p_1 := new(big.Int).Sub(p, big.NewInt(1))
+	// q_1 := new(big.Int).Sub(q, big.NewInt(1))
+	// euler := big.NewInt(new(big.Int).Mul(p_1, q_1).Int64())
+	// e := selectE(euler)
+
+	// d, p, q := findDPQ(e, n)
+	// if d == nil || p == nil || q == nil {
+	// 	fmt.Println("Nu s-au gasit d,p,q")
+	// 	fmt.Printf("d = %d , p = %d, q = %d ", d, p, q)
+	// } else {
+	// 	fmt.Printf("d = %d , p = %d, q = %d ", d, p, q)
+	// }
 }

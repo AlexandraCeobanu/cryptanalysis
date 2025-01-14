@@ -61,12 +61,12 @@ func main() {
 	p := 61
 	q := 53
 	n := big.NewInt(int64(p) * int64(q))
-	euler := big.NewInt(int64(p-1) * int64(q-1))
-	e := selectE(euler)
+	phi := big.NewInt(int64(p-1) * int64(q-1))
+	e := selectE(phi)
 
-	d := new(big.Int).ModInverse(e, euler)
+	d := new(big.Int).ModInverse(e, phi)
 	if d == nil {
-		fmt.Printf("nu exista invers multiplicativ pentru %d modulo %d", e, euler)
+		fmt.Printf("nu exista invers multiplicativ pentru %d modulo %d", e, phi)
 	}
 
 	// m := big.NewInt(65)

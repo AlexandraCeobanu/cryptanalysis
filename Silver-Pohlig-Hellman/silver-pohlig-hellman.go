@@ -42,7 +42,6 @@ func generateP() *big.Int {
 			return p
 		}
 	}
-
 }
 func modularInverse(x, p *big.Int) *big.Int {
 	inv := new(big.Int).ModInverse(x, p)

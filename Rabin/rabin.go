@@ -1,9 +1,48 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 	"math/big"
 )
+
+// var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541}
+// var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97}
+
+var prime_factors = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}
+
+// var prime_factors = []int{2, 3, 5, 7}
+
+func isPrime(p *big.Int) bool {
+	return p.ProbablyPrime(20)
+}
+func generateP() *big.Int {
+
+	for {
+
+		index, _ := rand.Int(rand.Reader, big.NewInt(int64(len(prime_factors))))
+		initialP := big.NewInt(int64(prime_factors[index.Int64()]))
+		for {
+
+			if initialP.BitLen() >= 10 {
+				break
+			}
+			index, _ := rand.Int(rand.Reader, big.NewInt(int64(len(prime_factors))))
+			factor := big.NewInt(int64(prime_factors[index.Int64()]))
+			if new(big.Int).Mul(initialP, factor).BitLen() <= 512 {
+
+				initialP.Mul(initialP, factor)
+			}
+
+		}
+		p := new(big.Int).Add(initialP, big.NewInt(1))
+
+		if isPrime(p) {
+
+			return p
+		}
+	}
+}
 
 func cmmdc(a, b *big.Int) *big.Int {
 	a_cpy := big.NewInt(a.Int64())
@@ -210,8 +249,22 @@ func decrypt(cryptotext []*big.Int, n *big.Int) *big.Int {
 }
 
 func main() {
-	p := big.NewInt(7)
-	q := big.NewInt(3)
+
+	// p := big.NewInt(7)
+	// q := big.NewInt(3)
+	// N := new(big.Int).Mul(p, q)
+	// m := big.NewInt(5)
+	// fmt.Printf("Mesajul pentru criptare este: %d", m)
+	// fmt.Println()
+	// cryptotext := encrypt(m, N)
+	// fmt.Printf("Criptotextul este: %d", cryptotext)
+	// fmt.Println()
+
+	// mDecrypted := decrypt(cryptotext, N)
+	// fmt.Println("Mesajul decriptat este: ", mDecrypted)
+
+	p := generateP()
+	q := generateP()
 	N := new(big.Int).Mul(p, q)
 	m := big.NewInt(5)
 	fmt.Printf("Mesajul pentru criptare este: %d", m)
@@ -220,13 +273,6 @@ func main() {
 	fmt.Printf("Criptotextul este: %d", cryptotext)
 	fmt.Println()
 
-	// n := big.NewInt(21)
-	// p, q := Pollard(n)
-	// fmt.Println("P= ", p)
-	// fmt.Println("Q= ", q)
 	mDecrypted := decrypt(cryptotext, N)
 	fmt.Println("Mesajul decriptat este: ", mDecrypted)
-	// q := big.NewInt(4)
-	// w := big.NewInt(21)
-
 }
